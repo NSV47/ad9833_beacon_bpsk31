@@ -19,7 +19,7 @@
 HFBEACON Beacon;
 
 HFBEACON::HFBEACON(){
- rsidTxEnable = 1;
+ rsidTxEnable = 0;
  pinMode(7,OUTPUT);
  pinMode(A2,OUTPUT);
  pinMode(A1,OUTPUT);
@@ -141,8 +141,8 @@ void HFBEACON::cwTx(long freqCw, char * stringCw, int cwWpm, AD9833 *genPtr){
 /********************************************************
  * PSK
  ********************************************************/
-#if 0
-void HFBEACON::pskTx(long freqPsk, char * stringPsk, int modePsk, int baudsPsk)
+#if 1
+void HFBEACON::pskTx(long freqPsk, char * stringPsk, int modePsk, int baudsPsk, AD9833 *genPtr)
 {
  static int const PskVaricode[2][128] PROGMEM = {
   {683,731,749,887,747,863,751,765,767,239,29,879,733,31,885,939,759,757,941,943,859,875,877,
@@ -166,11 +166,11 @@ void HFBEACON::pskTx(long freqPsk, char * stringPsk, int modePsk, int baudsPsk)
                                                          // 0 bpsk31
                                                          // 1 qpsk31
                                                          // 2 bpsk63
-   rsidTx(freqPsk, (baudsPsk >> 4) - (modePsk == 'B')); // 3 qpsk63
+   rsidTx(freqPsk, (baudsPsk >> 4) - (modePsk == 'B'), genPtr); // 3 qpsk63
                                                          // 6 bpsk125
                                                          // 7 qpsk125
  }     
- pskIdle(freqPsk, baudsPsk);  // A little idle on start of transmission for AFC capture
+ pskIdle(freqPsk, baudsPsk, genPtr);  // A little idle on start of transmission for AFC capture
 
  byte nb_bits,val;
  int d,e;
@@ -198,18 +198,18 @@ void HFBEACON::pskTx(long freqPsk, char * stringPsk, int modePsk, int baudsPsk)
    }
   //  DDS.setfreq(freqPsk, phase); // Let's transmit
     // gen.ApplySignal(SQUARE_WAVE,REG0,((freqPsk)*1000ul), REG0,phase); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
-    gen.ApplySignal(SQUARE_WAVE,REG0,(freqPsk), REG0,phase); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
+    genPtr->ApplySignal(SQUARE_WAVE,REG0,freqPsk, REG0,(float)phase*11.25); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
    delay((961 + baudsPsk) / baudsPsk);  // Gives the baud rate
   }
   c = *stringPsk++;  // Next caracter in string
  }
- pskIdle(freqPsk, baudsPsk); // A little idle to end the transmission
+ pskIdle(freqPsk, baudsPsk, genPtr); // A little idle to end the transmission
 //  DDS.setfreq(0, 0); // No more transmission
-gen.ApplySignal(SQUARE_WAVE,REG0,0); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
+genPtr->ApplySignal(SQUARE_WAVE,REG0,0); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
 }
 #endif
-#if 0
-void HFBEACON::pskIdle(long freqIdle, int baudsIdle)
+#if 1
+void HFBEACON::pskIdle(long freqIdle, int baudsIdle, AD9833 *genPtr)
 {
  int phaseIdle = 0;
  for(int n = 0; n < baudsIdle; n++)
@@ -217,7 +217,7 @@ void HFBEACON::pskIdle(long freqIdle, int baudsIdle)
   phaseIdle = (phaseIdle ^ 16) & 16;  // Idle is a flow of zeroes so only phase inversion
   // DDS.setfreq(freqIdle, phaseIdle);   // Let's transmit
   // gen.ApplySignal(SQUARE_WAVE,REG0,((freqIdle)*1000ul), REG0,phaseIdle); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
-  gen.ApplySignal(SQUARE_WAVE,REG0,(freqIdle), REG0,phaseIdle); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
+  genPtr->ApplySignal(SQUARE_WAVE,REG0,freqIdle, REG0,(float)phaseIdle*11.25); // SINE_WAVE // SQUARE_WAVE // HALF_SQUARE_WAVE
   delay((961 + baudsIdle) / baudsIdle);  // Gives the baud rate
  }
 }

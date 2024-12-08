@@ -15,7 +15,7 @@ AD9833 gen(FNC_PIN);       // Defaults to 25MHz internal reference frequency
 
 long freq=10140600;
 
-char txString[] = "NSV";
+char txString[] = "RYRYRYRY THE QUICK BROWN FOX JUMPS OVER THE LAZY DOG";
 
 int freeRam () 
 {
@@ -41,11 +41,11 @@ void setup() {
 void loop() {
   // put your main code here, to run repeatedly:
 
-  Beacon.cwTx(freq, txString, 20, &gen);
-   delay(1000);
+  // Beacon.cwTx(freq, txString, 20, &gen);
+  //  delay(1000);
    
-   //Beacon.pskTx(freq, txString, 'B', 31);
-   //delay(2000);
+   Beacon.pskTx(freq, txString, 'B', 31, &gen);
+   delay(2000);
    
    //Beacon.rttyTx(freq, txString);
    //delay(2000);
